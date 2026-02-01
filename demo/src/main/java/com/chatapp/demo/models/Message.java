@@ -1,13 +1,9 @@
 package com.chatapp.demo.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,17 +11,28 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Message {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    int id;
+    private int id;
 
-    int senderId;
-    int receiverId;
+    private int senderId;
+    private int receiverId;
 
-    String content;
+    @Column(length = 1000)
+    private String content; // Text message
 
-    String status; // SENT / SEEN
+    private String status; // SENT / DELIVERED / SEEN
+    private LocalDateTime time;
+    private boolean isRead;
 
-    LocalDateTime time;
+    private String messageType; // TEXT / IMAGE
+
+    @Lob
+    private String imageData; // Base64 encoded image
+
+    // 🆕 NEW - For message deletion
+    private boolean deletedForSender; // Message deleted for sender
+    private boolean deletedForReceiver; // Message deleted for receiver
+    private boolean deletedStatus; // Overall delete status
+    private LocalDateTime deletedAt; // When message was deleted
 }

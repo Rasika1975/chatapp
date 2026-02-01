@@ -2,11 +2,9 @@ package com.chatapp.demo.controller;
 
 import com.chatapp.demo.dto.LoginDto;
 import com.chatapp.demo.models.History;
-
 import com.chatapp.demo.models.User;
 import com.chatapp.demo.repositories.HistoryRepo;
-
-
+import com.chatapp.demo.repositories.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
@@ -17,7 +15,7 @@ import java.util.Optional;
 public class AuthController {
 
     @Autowired
-    private com.chatapp.demo.repositories.UserRepo userRepo;
+    private UserRepo userRepo;
 
     @Autowired
     private HistoryRepo historyRepo;
@@ -30,11 +28,12 @@ public class AuthController {
         }
         user.setRole("USER");
         user.setStatus("OFFLINE");
+        user.setLastSeen(LocalDateTime.now()); // 🆕 NEW
         userRepo.save(user);
         return "Registration Successful";
     }
 
-    // Login (VBS style)
+    // Login
     @PostMapping("/login")
     public String login(@RequestBody LoginDto dto) {
         Optional<User> user = userRepo.findByUsernameAndPassword(dto.getUsername(), dto.getPassword());
@@ -42,9 +41,9 @@ public class AuthController {
         if (user.isPresent()) {
             User u = user.get();
             u.setStatus("ONLINE");
+            u.setLastSeen(LocalDateTime.now()); // 🆕 NEW
             userRepo.save(u);
 
-            // History save (VBS jaisa)
             History h = new History();
             h.setUserId(u.getId());
             h.setAction("LOGIN");
@@ -64,6 +63,7 @@ public class AuthController {
         if (user.isPresent()) {
             User u = user.get();
             u.setStatus("OFFLINE");
+            u.setLastSeen(LocalDateTime.now()); // 🆕 NEW
             userRepo.save(u);
 
             History h = new History();
@@ -74,6 +74,19 @@ public class AuthController {
             historyRepo.save(h);
 
             return "Logout Successful";
+        }
+        return "User Not Found";
+    }
+
+    // 🆕 NEW - Update last seen (heartbeat)
+    @PostMapping("/heartbeat/{id}")
+    public String updateHeartbeat(@PathVariable int id) {
+        Optional<User> user = userRepo.findById(id);
+        if (user.isPresent()) {
+            User u = user.get();
+            u.setLastSeen(LocalDateTime.now());
+            userRepo.save(u);
+            return "OK";
         }
         return "User Not Found";
     }
